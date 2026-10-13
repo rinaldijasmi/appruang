@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4f5f2">
+    <title>Ruang — kelola tugas dengan lebih tenang</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --background: #f6f7f5;
+        --surface: #fff;
+        --surface-soft: #f0f2ef;
+        --ink: #202722;
+        --muted: #788078;
+        --line: #e7eae6;
+        --accent: #397254;
+        --accent-dark: #294f3a;
+        --accent-soft: #e8f0eb;
+        --sidebar: #202923;
+        --sidebar-muted: #aab2aa;
+        --danger: #b24a43;
+        --shadow: 0 18px 45px rgb(32 39 34 / 8%);
+        font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+      body { margin: 0; min-width: 320px; min-height: 100vh; background: var(--background); color: var(--ink); }
+      button, input, select { font: inherit; }
+      button { cursor: pointer; }
+      .app { display: grid; grid-template-columns: 252px minmax(0, 1fr); min-height: 100vh; }
+      .sidebar { display: flex; flex-direction: column; padding: 30px 18px 20px; background: var(--sidebar); color: #fff; }
+      .brand { display: flex; align-items: center; gap: 11px; margin: 0 8px 45px; font-size: 19px; font-weight: 650; letter-spacing: -.6px; }
+      .brand-mark { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 10px; background: #dce9df; color: var(--accent-dark); }
+      .brand-mark svg { width: 18px; height: 18px; }
+      .side-label { margin: 0 10px 12px; color: #858f86; font-size: 10px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; }
+      .nav { display: grid; gap: 5px; }
+      .nav-button { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 43px; padding: 0 11px; border: 0; border-radius: 8px; background: transparent; color: var(--sidebar-muted); text-align: left; transition: background .18s, color .18s; }
+      .nav-button:hover { background: rgb(255 255 255 / 7%); color: #fff; }
+      .nav-button.active { background: #35443a; color: #fff; }
+      .nav-button svg { width: 17px; height: 17px; flex: none; opacity: .9; }
+      .nav-button span { flex: 1; font-size: 13px; }
+      .nav-count { color: #aeb8ae; font-size: 11px; }
+      .sidebar-bottom { margin-top: auto; padding: 17px 11px 4px; border-top: 1px solid rgb(255 255 255 / 10%); color: #aab2aa; font-size: 12px; line-height: 1.7; }
+      .sidebar-bottom strong { display: block; margin-bottom: 3px; color: #f3f5f2; font-weight: 550; }
+      main { min-width: 0; padding: 30px clamp(22px, 5vw, 72px) 64px; }
+      .topbar { display: flex; justify-content: space-between; align-items: center; gap: 18px; max-width: 1120px; margin: 0 auto 48px; }
+      .date-label { color: var(--muted); font-size: 12px; }
+      .topbar-actions { display: flex; align-items: center; gap: 11px; }
+      .search-wrap { position: relative; }
+      .search-wrap svg { position: absolute; top: 50%; left: 12px; width: 16px; height: 16px; color: #8a928a; transform: translateY(-50%); pointer-events: none; }
+      .search { width: min(220px, 34vw); height: 39px; padding: 0 12px 0 37px; border: 1px solid var(--line); border-radius: 8px; outline: none; background: var(--surface); color: var(--ink); font-size: 12px; }
+      .search:focus, .field:focus, .select:focus { border-color: #92ad9a; box-shadow: 0 0 0 3px rgb(57 114 84 / 10%); }
+      .avatar { display: grid; width: 35px; height: 35px; place-items: center; border: 1px solid #dfe5df; border-radius: 50%; background: #e7ece6; color: #48644f; font-size: 11px; font-weight: 650; }
+      .content { max-width: 900px; margin: 0 auto; }
+      .heading-row { display: flex; justify-content: space-between; align-items: end; gap: 18px; margin-bottom: 29px; }
+      .eyebrow { margin: 0 0 9px; color: var(--accent); font-size: 11px; font-weight: 650; letter-spacing: 1.2px; text-transform: uppercase; }
+      h1 { margin: 0; font-size: clamp(27px, 4vw, 35px); font-weight: 580; letter-spacing: -1.4px; }
+      .subtitle { margin: 9px 0 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+      .primary-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 15px; border: 0; border-radius: 8px; background: var(--accent); color: white; font-size: 12px; font-weight: 600; transition: background .18s, transform .18s; }
+      .primary-button:hover { background: var(--accent-dark); transform: translateY(-1px); }
+      .primary-button svg { width: 15px; height: 15px; }
+      .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 36px; }
+      .stat-card { min-height: 99px; padding: 17px 19px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+      .stat-label { color: var(--muted); font-size: 11px; }
+      .stat-value { display: flex; align-items: baseline; gap: 7px; margin-top: 10px; font-size: 25px; font-weight: 570; letter-spacing: -.9px; }
+      .stat-note { color: #8b938c; font-size: 10px; font-weight: 400; letter-spacing: 0; }
+      .list-header { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 13px; }
+      .list-title { margin: 0; font-size: 15px; font-weight: 620; letter-spacing: -.2px; }
+      .task-count { margin-left: 7px; color: #929991; font-size: 11px; font-weight: 450; }
+      .sort-label { color: #858d85; font-size: 11px; }
+      .task-list { display: grid; gap: 9px; }
+      .task { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; align-items: start; gap: 13px; padding: 16px 17px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); transition: border-color .18s, box-shadow .18s; }
+      .task:hover { border-color: #d9e1da; box-shadow: 0 5px 18px rgb(32 39 34 / 4%); }
+      .check { display: grid; width: 18px; height: 18px; margin-top: 1px; padding: 0; place-items: center; border: 1.5px solid #c8d0c9; border-radius: 50%; background: transparent; color: white; transition: background .16s, border-color .16s; }
+      .check:hover { border-color: var(--accent); }
+      .check svg { width: 12px; height: 12px; opacity: 0; }
+      .task.completed .check { border-color: var(--accent); background: var(--accent); }
+      .task.completed .check svg { opacity: 1; }
+      .task-copy { min-width: 0; }
+      .task-title { overflow-wrap: anywhere; font-size: 13px; font-weight: 550; line-height: 1.45; }
+      .task.completed .task-title { color: #949b94; text-decoration: line-through; }
+      .task-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin-top: 8px; color: #858d85; font-size: 10px; }
+      .due { display: inline-flex; align-items: center; gap: 5px; }
+      .due svg { width: 12px; height: 12px; }
+      .due.overdue { color: var(--danger); }
+      .priority { display: inline-flex; align-items: center; gap: 5px; }
+      .priority::before { width: 6px; height: 6px; border-radius: 50%; background: #89918a; content: ""; }
+      .priority.high::before { background: #c77a56; }
+      .priority.medium::before { background: #b89b52; }
+      .task-actions { display: flex; align-items: center; gap: 5px; }
+      .icon-button { display: grid; width: 29px; height: 29px; padding: 0; place-items: center; border: 0; border-radius: 6px; background: transparent; color: #939a93; opacity: 0; transition: opacity .15s, background .15s, color .15s; }
+      .task:hover .icon-button, .icon-button:focus-visible { opacity: 1; }
+      .icon-button:hover { background: #f9ecea; color: var(--danger); }
+      .icon-button svg { width: 15px; height: 15px; }
+      .empty { padding: 48px 20px; border: 1px dashed #d9dfd8; border-radius: 10px; background: rgb(255 255 255 / 55%); text-align: center; }
+      .empty-mark { display: grid; width: 42px; height: 42px; margin: 0 auto 13px; place-items: center; border-radius: 12px; background: var(--accent-soft); color: var(--accent); }
+      .empty-mark svg { width: 19px; height: 19px; }
+      .empty h2 { margin: 0; font-size: 14px; font-weight: 600; }
+      .empty p { margin: 7px 0 0; color: var(--muted); font-size: 12px; }
+      .task-form { display: none; margin: -18px 0 28px; padding: 18px; border: 1px solid #dce5dd; border-radius: 10px; background: var(--surface); box-shadow: var(--shadow); }
+      .task-form.visible { display: block; }
+      .form-title { margin: 0 0 14px; font-size: 13px; font-weight: 600; }
+      .form-grid { display: grid; grid-template-columns: minmax(0, 1fr) 150px 130px auto; align-items: end; gap: 10px; }
+      .field-group { display: grid; gap: 6px; }
+      .field-group label { color: #737c74; font-size: 10px; font-weight: 550; }
+      .field, .select { width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--line); border-radius: 7px; outline: none; background: white; color: var(--ink); font-size: 11px; }
+      .form-submit { height: 38px; white-space: nowrap; }
+      .form-error { min-height: 15px; margin: 8px 0 0; color: var(--danger); font-size: 11px; }
+      .mobile-brand { display: none; }
+      @media (max-width: 760px) {
+        .app { grid-template-columns: 1fr; }
+        .sidebar { position: sticky; z-index: 2; top: 0; display: block; padding: 12px 18px 10px; }
+        .brand { display: none; }
+        .mobile-brand { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 15px; font-weight: 650; }
+        .mobile-brand .brand-mark { width: 26px; height: 26px; border-radius: 8px; }
+        .mobile-brand .brand-mark svg { width: 15px; height: 15px; }
+        .side-label, .sidebar-bottom { display: none; }
+        .nav { display: flex; gap: 5px; overflow-x: auto; scrollbar-width: none; }
+        .nav::-webkit-scrollbar { display: none; }
+        .nav-button { width: auto; min-height: 35px; padding: 0 10px; white-space: nowrap; }
+        .nav-button svg { width: 15px; height: 15px; }
+        .nav-button span { flex: none; font-size: 11px; }
+        .nav-count { display: none; }
+        main { padding: 21px 19px 48px; }
+        .topbar { margin-bottom: 34px; }
+        .heading-row { align-items: start; }
+        .stats { gap: 8px; margin-bottom: 29px; }
+        .stat-card { min-height: 83px; padding: 13px 11px; }
+        .stat-value { margin-top: 9px; font-size: 22px; }
+        .stat-note { display: none; }
+      }
+      @media (max-width: 520px) {
+        .topbar { margin-bottom: 29px; }
+        .date-label { max-width: 125px; font-size: 10px; line-height: 1.4; }
+        .search { width: 38px; padding-right: 0; transition: width .2s; }
+        .search:focus { width: 145px; padding-right: 10px; }
+        .heading-row { gap: 10px; }
+        .heading-row .primary-button { min-height: 37px; padding: 0 11px; font-size: 11px; }
+        .subtitle { max-width: 245px; font-size: 12px; }
+        .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .stat-card { padding: 12px 9px; }
+        .stat-label { font-size: 9px; }
+        .stat-value { font-size: 21px; }
+        .form-grid { grid-template-columns: 1fr 1fr; }
+        .form-grid .field-group:first-child { grid-column: 1 / -1; }
+        .form-submit { width: 100%; }
+        .task { gap: 10px; padding: 14px 12px; }
+        .icon-button { opacity: 1; }
+        .sort-label { display: none; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+      }
+      :root {
+        --background: #f4f5f2;
+        --surface: #fff;
+        --surface-soft: #eef1ed;
+        --ink: #202922;
+        --muted: #7d877e;
+        --line: #e5e9e4;
+        --accent: #416c50;
+        --accent-dark: #31563e;
+        --accent-soft: #e9f0e9;
+        --sidebar: #202923;
+        --shadow: 0 16px 38px rgb(28 39 31 / 8%);
+      }
+      body { background: var(--background); }
+      .sidebar { padding: 32px 17px 22px; }
+      .brand { margin-bottom: 54px; font-size: 20px; }
+      .nav { gap: 7px; }
+      .nav-button { min-height: 45px; border-radius: 9px; }
+      .nav-button.active { background: #34453a; box-shadow: inset 2px 0 #a7c5a9; }
+      .nav-button > span:nth-child(2) { flex: 1; min-width: 0; }
+      .nav-button > .nav-count { flex: none; margin-left: auto; }
+      main { padding: 32px clamp(22px, 4vw, 54px) 60px; }
+      .topbar { max-width: 1240px; margin-bottom: 43px; }
+      .content { max-width: 1240px; }
+      .heading-row { align-items: center; margin-bottom: 25px; }
+      h1 { font-size: clamp(30px, 3.6vw, 40px); letter-spacing: -1.8px; }
+      .eyebrow { font-size: 10px; letter-spacing: 1.45px; }
+      .subtitle { margin-top: 8px; }
+      .primary-button { min-height: 42px; padding: 0 17px; border-radius: 9px; }
+      .stats { gap: 13px; margin-bottom: 31px; }
+      .stat-card { min-height: 87px; padding: 15px 18px; border-radius: 11px; }
+      .stat-value { margin-top: 6px; font-size: 23px; }
+      .task-form { margin: -12px 0 25px; padding: 20px; border-color: #dfe5df; border-radius: 12px; }
+      .form-grid { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.2fr) minmax(125px, .9fr) minmax(125px, auto); }
+      .form-grid .field-group:first-child { grid-column: 1 / 3; }
+      .due-field { grid-column: 3; grid-row: 1; }
+      .priority-field { grid-column: 4; grid-row: 1; }
+      .description-field { grid-column: 1 / 4; grid-row: 2; }
+      .form-submit { grid-column: 4; grid-row: 2; }
+      .description-field label span { color: #9aa29a; font-weight: 400; }
+      .description-input { height: auto; min-height: 63px; padding: 10px 11px; resize: vertical; line-height: 1.5; }
+      .field, .select { min-height: 40px; height: 40px; border-radius: 8px; }
+      .form-submit { min-height: 40px; }
+      .board-caption { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin: 0 0 14px; color: #657067; font-size: 11px; font-weight: 600; }
+      .drag-hint { color: #919a91; font-size: 10px; font-weight: 400; }
+      .drag-hint span { margin-right: 4px; font-size: 15px; vertical-align: -1px; }
+      .board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 15px; }
+      .kanban-column { min-width: 0; min-height: 270px; padding: 12px; border: 1px solid #e6e9e4; border-radius: 12px; background: #ecefeb; transition: background .18s, border-color .18s, box-shadow .18s; }
+      .kanban-column.drag-over { border-color: #8aa791; background: #e7eee8; box-shadow: inset 0 0 0 1px #b6c9b8; }
+      .column-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 2px 3px 12px; }
+      .column-heading { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 12px; font-weight: 650; }
+      .column-dot { width: 8px; height: 8px; border-radius: 50%; background: #8d988e; }
+      .kanban-column[data-status="inprogress"] .column-dot { background: #c19750; }
+      .kanban-column[data-status="done"] .column-dot { background: #527a5b; }
+      .column-count { display: grid; min-width: 21px; height: 21px; padding: 0 5px; place-items: center; border-radius: 7px; background: #e1e5e0; color: #6f786f; font-size: 10px; }
+      .column-cards { display: grid; min-height: 195px; align-content: start; gap: 9px; }
+      .column-empty { display: grid; min-height: 116px; place-items: center; padding: 16px 10px; border: 1px dashed #d5dbd5; border-radius: 9px; color: #99a199; font-size: 11px; text-align: center; }
+      .board-card { position: relative; min-width: 0; padding: 13px; border: 1px solid #e6e9e5; border-radius: 9px; background: #fff; box-shadow: 0 2px 7px rgb(32 41 34 / 3%); cursor: grab; transition: border-color .16s, box-shadow .16s, transform .16s, opacity .16s; }
+      .board-card:hover { border-color: #d2dbd2; box-shadow: 0 7px 17px rgb(32 41 34 / 7%); transform: translateY(-1px); }
+      .board-card:active { cursor: grabbing; }
+      .board-card.dragging { opacity: .4; transform: rotate(-1deg); }
+      .card-topline { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 9px; }
+      .priority { display: inline-flex; align-items: center; gap: 6px; color: #737d74; font-size: 9px; }
+      .priority::before { width: 6px; height: 6px; }
+      .priority.high::before { background: #c4775d; }
+      .priority.medium::before { background: #c19b57; }
+      .priority.low::before { background: #78927a; }
+      .card-grip { color: #aab2aa; font-size: 15px; line-height: 1; }
+      .card-title { overflow-wrap: anywhere; font-size: 12px; font-weight: 630; line-height: 1.5; }
+      .card-description { margin: 6px 0 0; color: #7b847c; font-size: 10px; line-height: 1.55; overflow-wrap: anywhere; white-space: pre-wrap; }
+      .card-description:empty { display: none; }
+      .card-footer { display: flex; align-items: center; justify-content: space-between; gap: 7px; margin-top: 13px; padding-top: 10px; border-top: 1px solid #f0f1ef; }
+      .card-due { display: inline-flex; align-items: center; gap: 5px; color: #879087; font-size: 9px; }
+      .card-due svg { width: 12px; height: 12px; }
+      .card-due.overdue { color: var(--danger); }
+      .card-actions { display: flex; align-items: center; gap: 5px; }
+      .status-select { max-width: 112px; height: 27px; padding: 0 20px 0 7px; border: 1px solid #e8ebe7; border-radius: 6px; outline: none; background: #fafbf9; color: #657067; font-size: 9px; cursor: pointer; }
+      .status-select:focus { border-color: #92ad9a; }
+      .delete-card { display: grid; width: 27px; height: 27px; padding: 0; place-items: center; border: 0; border-radius: 6px; background: transparent; color: #9aa29a; cursor: pointer; }
+      .delete-card:hover { background: #f8eae8; color: var(--danger); }
+      .delete-card svg { width: 14px; height: 14px; }
+      .kanban-column[data-status="done"] .card-title { color: #818b82; text-decoration: line-through; text-decoration-color: #b2bbb2; }
+      @media (max-width: 950px) {
+        .app { grid-template-columns: 205px minmax(0, 1fr); }
+        .board { gap: 10px; }
+        .kanban-column { padding: 9px; }
+        .board-card { padding: 11px; }
+      }
+      @media (max-width: 760px) {
+        .app { grid-template-columns: minmax(0, 1fr); }
+        .sidebar { min-width: 0; width: 100%; padding: 12px 18px 10px; }
+        .brand { margin-bottom: 20px; }
+        .nav { display: flex; width: 100%; min-width: 0; }
+        .nav-button { min-height: 37px; }
+        .nav-button span { flex: none; }
+        .nav-button > span:nth-child(2) { flex: none; }
+        .nav-count { display: none; }
+        main { width: 100%; min-width: 0; padding: 23px 20px 45px; }
+        .topbar { min-width: 0; margin-bottom: 32px; }
+        .topbar-actions, .search-wrap, .search { min-width: 0; }
+        .search-wrap { flex: 0 1 auto; }
+        .content { width: 100%; max-width: 100%; min-width: 0; }
+        .board { grid-template-columns: 1fr; gap: 12px; }
+        .kanban-column { min-height: 0; padding: 11px; }
+        .column-cards { min-height: 100px; }
+        .column-empty { min-height: 70px; }
+        .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .form-grid .field-group:first-child { grid-column: 1 / -1; }
+        .due-field, .priority-field, .description-field, .form-submit { grid-column: auto; grid-row: auto; }
+        .description-field { grid-column: 1 / -1; }
+        .form-submit { width: 100%; }
+      }
+      @media (max-width: 520px) {
+        .topbar { margin-bottom: 29px; }
+        .heading-row { align-items: start; }
+        .heading-row .primary-button { white-space: nowrap; }
+        .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+        .stat-card { min-height: 77px; padding: 12px 9px; }
+        .stat-label { font-size: 9px; }
+        .stat-value { font-size: 20px; }
+        .stat-note { display: none; }
+        .board-caption { align-items: start; flex-direction: column; gap: 5px; }
+        .drag-hint { line-height: 1.5; }
+        .form-grid { grid-template-columns: 1fr 1fr; }
+        .form-grid .field-group:first-child, .description-field { grid-column: 1 / -1; }
+        .form-submit { grid-column: 1 / -1; }
+        .sort-label { display: none; }
+      }
+      .auth-screen { display: grid; min-height: 100vh; place-items: center; padding: 28px 18px; background: radial-gradient(ellipse at 8% 8%, #e9eee8 0, transparent 38%), var(--background); }
+      .auth-card { width: min(100%, 420px); padding: 34px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); }
+      .auth-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; font-size: 19px; font-weight: 650; letter-spacing: -.5px; }
+      .auth-heading { margin: 0; font-size: 26px; font-weight: 620; letter-spacing: -1px; }
+      .auth-subtitle { margin: 8px 0 24px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+      .auth-form { display: grid; gap: 13px; }
+      .auth-form .field-group { gap: 7px; }
+      .auth-form .field-group label { font-size: 11px; }
+      .auth-form .field { height: 43px; font-size: 13px; }
+      .auth-primary { width: 100%; min-height: 43px; margin-top: 3px; }
+      .auth-google { display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%; min-height: 42px; margin-top: 12px; border: 1px solid var(--line); border-radius: 8px; background: white; color: #344037; font-size: 12px; font-weight: 550; }
+      .auth-google:hover { background: #f8faf8; }
+      .auth-google svg { width: 16px; height: 16px; }
+      .auth-switch { margin: 17px 0 0; color: var(--muted); font-size: 11px; text-align: center; }
+      .text-button { padding: 0; border: 0; background: none; color: var(--accent); font-size: inherit; font-weight: 600; }
+      .auth-message { min-height: 17px; margin: 12px 0 0; color: var(--accent-dark); font-size: 11px; line-height: 1.55; }
+      .auth-message.error { color: var(--danger); }
+      .setup-note { margin-top: 17px; padding: 12px; border: 1px solid #e8ddc2; border-radius: 8px; background: #fbf7ed; color: #76643b; font-size: 10px; line-height: 1.6; }
+      .setup-note a { color: #5b744d; font-weight: 600; }
+      .account-actions { display: flex; align-items: center; gap: 12px; }
+      .account-email { max-width: 190px; overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+      .sign-out { padding: 7px 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: #657067; font-size: 10px; }
+      .sign-out:hover { border-color: #cbd4cb; color: var(--ink); }
+      @media (max-width: 520px) {
+        .auth-card { padding: 26px 22px; }
+        .account-email { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <section class="auth-screen" id="auth-screen" aria-labelledby="auth-heading">
+      <div class="auth-card">
+        <div class="auth-brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m5 12 4.2 4.2L19 6.8"/><path d="M20 12a8 8 0 1 1-4.2-7"/></svg></span>ruang</div>
+        <h1 class="auth-heading" id="auth-heading">Masuk ke ruang kerja</h1>
+        <p class="auth-subtitle">Masuk untuk melihat dan mengelola papan tugas bersama tim.</p>
+        <form class="auth-form" id="auth-form">
+          <div class="field-group">
+            <label for="auth-email">Email</label>
+            <input class="field" id="auth-email" type="email" autocomplete="email" placeholder="nama@email.com" required>
+          </div>
+          <div class="field-group">
+            <label for="auth-password">Kata sandi</label>
+            <input class="field" id="auth-password" type="password" autocomplete="current-password" minlength="6" placeholder="Minimal 6 karakter" required>
+          </div>
+          <button class="primary-button auth-primary" id="auth-submit" type="submit">Masuk</button>
+        </form>
+        <button class="auth-google" id="google-sign-in" type="button"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.39-.18-2.05H12v3.88h5.38a4.6 4.6 0 0 1-2 3.02v2.52h3.23c1.89-1.74 2.99-4.3 2.99-7.37Z"/><path fill="#34A853" d="M12 22c2.7 0 4.97-.9 6.62-2.4l-3.23-2.52c-.9.6-2.04.96-3.39.96-2.6 0-4.81-1.76-5.6-4.13H3.06v2.6A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.4 13.91a6.02 6.02 0 0 1 0-3.82v-2.6H3.06a10 10 0 0 0 0 9.02l3.34-2.6Z"/><path fill="#EA4335" d="M12 5.96c1.47 0 2.79.5 3.83 1.5l2.87-2.87C16.97 2.96 14.7 2 12 2a10 10 0 0 0-8.94 5.49l3.34 2.6c.79-2.37 3-4.13 5.6-4.13Z"/></svg>Masuk dengan Google</button>
+        <p class="auth-switch"><span id="auth-switch-prompt">Belum punya akun?</span> <button class="text-button" id="auth-switch" type="button">Daftar</button></p>
+        <p class="auth-message" id="auth-message" role="status" aria-live="polite"></p>
+        <div class="setup-note" id="setup-note" hidden>Backend belum dikonfigurasi. Ikuti <a href="./SUPABASE_SETUP.md" target="_blank" rel="noreferrer">panduan setup Supabase</a>, lalu isi URL dan anon key publik di <code>supabase-config.js</code>.</div>
+      </div>
+    </section>
+    <div class="app" id="app" hidden>
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m5 12 4.2 4.2L19 6.8"/><path d="M20 12a8 8 0 1 1-4.2-7"/></svg></span>
+          ruang
+        </div>
+        <div class="mobile-brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m5 12 4.2 4.2L19 6.8"/><path d="M20 12a8 8 0 1 1-4.2-7"/></svg></span>ruang</div>
+        <p class="side-label">Workspace</p>
+        <nav class="nav" aria-label="Navigasi tugas">
+          <button class="nav-button" data-view="today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M16 3v4M8 3v4M3.5 10h17"/></svg><span>Hari ini</span><span class="nav-count" id="today-count"></span></button>
+          <button class="nav-button" data-view="upcoming"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 4.5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-12a2 2 0 0 1 2-2Z"/><path d="M7 2.5v4M17 2.5v4M3 9h18M8 13h3m-3 4h8"/></svg><span>Mendatang</span><span class="nav-count" id="upcoming-count"></span></button>
+          <button class="nav-button active" data-view="all"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r=".6" fill="currentColor"/><circle cx="4" cy="12" r=".6" fill="currentColor"/><circle cx="4" cy="18" r=".6" fill="currentColor"/></svg><span>Papan tugas</span><span class="nav-count" id="all-count"></span></button>
+          <button class="nav-button" data-view="completed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16.5 9"/></svg><span>Sudah selesai</span><span class="nav-count" id="completed-count"></span></button>
+        </nav>
+        <div class="sidebar-bottom"><strong>Ruang untuk fokus.</strong>Satu langkah kecil, satu hal dalam satu waktu.</div>
+      </aside>
+      <main>
+        <header class="topbar">
+          <div class="date-label" id="today-date"></div>
+          <div class="topbar-actions">
+            <label class="search-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>
+              <input class="search" id="search" type="search" placeholder="Cari tugas..." aria-label="Cari tugas">
+            </label>
+            <div class="account-actions">
+              <span class="account-email" id="account-email"></span>
+              <button class="sign-out" id="sign-out" type="button">Keluar</button>
+            </div>
+          </div>
+        </header>
+        <section class="content">
+          <div class="heading-row">
+            <div>
+              <p class="eyebrow" id="eyebrow">RUANG KERJA</p>
+              <h1 id="page-title">Papan tugas</h1>
+              <p class="subtitle" id="page-subtitle">Atur alur kerja dan pindahkan tugas seiring progres.</p>
+            </div>
+            <button class="primary-button" id="open-form" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Tugas baru</button>
+          </div>
+
+          <form class="task-form" id="task-form">
+            <h2 class="form-title">Tambahkan tugas</h2>
+            <div class="form-grid">
+              <div class="field-group">
+                <label for="task-title">Nama tugas</label>
+                <input class="field" id="task-title" name="title" type="text" maxlength="120" placeholder="Contoh: Siapkan materi presentasi" required>
+              </div>
+              <div class="field-group description-field">
+                <label for="task-description">Deskripsi <span>(opsional)</span></label>
+                <textarea class="field description-input" id="task-description" name="description" maxlength="500" rows="2" placeholder="Tambahkan detail atau catatan untuk tugas ini"></textarea>
+              </div>
+              <div class="field-group due-field">
+                <label for="task-date">Tenggat</label>
+                <input class="field" id="task-date" name="dueDate" type="date">
+              </div>
+              <div class="field-group priority-field">
+                <label for="task-priority">Prioritas</label>
+                <select class="select" id="task-priority" name="priority">
+                  <option value="medium">Sedang</option>
+                  <option value="high">Tinggi</option>
+                  <option value="low">Rendah</option>
+                </select>
+              </div>
+              <button class="primary-button form-submit" type="submit">Simpan tugas</button>
+            </div>
+            <p class="form-error" id="form-error" role="alert"></p>
+          </form>
+
+          <div class="stats" aria-label="Ringkasan tugas">
+            <article class="stat-card"><div class="stat-label">Tugas hari ini</div><div class="stat-value"><span id="stat-today">0</span><span class="stat-note">perlu perhatian</span></div></article>
+            <article class="stat-card"><div class="stat-label">Sudah selesai</div><div class="stat-value"><span id="stat-completed">0</span><span class="stat-note">bagus, teruskan</span></div></article>
+            <article class="stat-card"><div class="stat-label">Mendatang</div><div class="stat-value"><span id="stat-upcoming">0</span><span class="stat-note">ada di jadwal</span></div></article>
+          </div>
+
+          <div class="board-caption">
+            <span id="board-summary">Alur kerja</span>
+            <span class="drag-hint"><span aria-hidden="true">⠿</span> Seret kartu ke kolom berikutnya untuk memperbarui progres</span>
+          </div>
+          <div class="board" id="task-board" aria-label="Papan tugas"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      const STORAGE_KEY = "ruang-tasks-v1";
+      const STATUSES = ["todo", "inprogress", "done"];
+      const STATUS_LABELS = { todo: "To do", inprogress: "In progress", done: "Done" };
+      const dayKey = (date) => {
+        const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+        return local.toISOString().slice(0, 10);
+      };
+      const today = dayKey(new Date());
+      const addDays = (amount) => {
+        const date = new Date();
+        date.setDate(date.getDate() + amount);
+        return dayKey(date);
+      };
+      const viewCopy = {
+        today: ["FOKUS HARIAN", "Hari ini", "Fokus pada hal yang penting. Sisanya bisa menunggu."],
+        upcoming: ["RENCANA KE DEPAN", "Mendatang", "Lihat apa yang akan datang, lalu siapkan langkah berikutnya."],
+        all: ["RUANG KERJA", "Papan tugas", "Atur alur kerja dan pindahkan tugas seiring progres."],
+        completed: ["PENCAPAIAN", "Sudah selesai", "Lihat kembali hal-hal yang sudah berhasil kamu tuntaskan."]
+      };
+      const priorityLabels = { high: "Tinggi", medium: "Sedang", low: "Rendah" };
+
+      function normalizeTask(task) {
+        if (!task || typeof task.id !== "string" || typeof task.title !== "string") {
+          throw new Error("Data tugas tersimpan tidak valid.");
+        }
+        const status = STATUSES.includes(task.status) ? task.status : task.completed ? "done" : "todo";
+        const priority = Object.hasOwn(priorityLabels, task.priority) ? task.priority : "medium";
+        return {
+          id: task.id,
+          title: task.title,
+          description: typeof task.description === "string" ? task.description : "",
+          dueDate: typeof task.dueDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(task.dueDate) ? task.dueDate : "",
+          priority,
+          status
+        };
+      }
+
+      let tasks = [];
+      let activeView = "all";
+      let query = "";
+      const $ = (selector) => document.querySelector(selector);
+      const titleInput = $("#task-title");
+      const form = $("#task-form");
+      const board = $("#task-board");
+      const authScreen = $("#auth-screen");
+      const app = $("#app");
+      const authMessage = $("#auth-message");
+      const authForm = $("#auth-form");
+      let supabaseClient = null;
+      let currentUser = null;
+      let realtimeChannel = null;
+      let authMode = "signin";
+
+      $("#today-date").textContent = new Intl.DateTimeFormat("id-ID", {
+        weekday: "long", day: "numeric", month: "long", year: "numeric"
+      }).format(new Date());
+
+      function escapeHtml(value) {
+        return value.replace(/[&<>"']/g, (character) => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+        })[character]);
+      }
+
+      function formatDueDate(dateString) {
+        if (!dateString) return "Tanpa tenggat";
+        const date = new Date(`${dateString}T00:00:00`);
+        if (dateString === today) return "Hari ini";
+        if (dateString === addDays(1)) return "Besok";
+        return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short" }).format(date);
+      }
+
+      function matchesView(task) {
+        if (activeView === "completed") return task.status === "done";
+        if (activeView === "today") return task.status !== "done" && (task.dueDate === today || !task.dueDate);
+        if (activeView === "upcoming") return task.status !== "done" && task.dueDate > today;
+        return true;
+      }
+
+      function render() {
+        const openTasks = tasks.filter((task) => task.status !== "done");
+        const todayTasks = openTasks.filter((task) => task.dueDate === today || !task.dueDate);
+        const upcomingTasks = openTasks.filter((task) => task.dueDate > today);
+        const completedTasks = tasks.filter((task) => task.status === "done");
+        $("#stat-today").textContent = todayTasks.length;
+        $("#stat-completed").textContent = completedTasks.length;
+        $("#stat-upcoming").textContent = upcomingTasks.length;
+        $("#today-count").textContent = todayTasks.length || "";
+        $("#upcoming-count").textContent = upcomingTasks.length || "";
+        $("#all-count").textContent = tasks.length || "";
+        $("#completed-count").textContent = completedTasks.length || "";
+
+        const [eyebrow, heading, subtitle] = viewCopy[activeView];
+        $("#eyebrow").textContent = eyebrow;
+        $("#page-title").textContent = heading;
+        $("#page-subtitle").textContent = subtitle;
+
+        const visibleTasks = tasks
+          .filter(matchesView)
+          .filter((task) => `${task.title} ${task.description}`.toLocaleLowerCase("id").includes(query.toLocaleLowerCase("id")))
+          .sort((a, b) => (a.dueDate || "9999-12-31").localeCompare(b.dueDate || "9999-12-31"));
+        $("#board-summary").textContent = `${visibleTasks.length} tugas · ${activeView === "all" ? "semua status" : heading.toLocaleLowerCase("id")}`;
+        board.replaceChildren();
+
+        STATUSES.forEach((status) => {
+          const columnTasks = visibleTasks.filter((task) => task.status === status);
+          const column = document.createElement("section");
+          column.className = "kanban-column";
+          column.dataset.status = status;
+          column.setAttribute("aria-label", `${STATUS_LABELS[status]}: ${columnTasks.length} tugas`);
+          column.innerHTML = `
+            <header class="column-header">
+              <h2 class="column-heading"><span class="column-dot" aria-hidden="true"></span>${STATUS_LABELS[status]}</h2>
+              <span class="column-count">${columnTasks.length}</span>
+            </header>
+            <div class="column-cards" data-dropzone="${status}"></div>`;
+          const cardList = column.querySelector(".column-cards");
+
+          if (columnTasks.length === 0) {
+            const empty = document.createElement("div");
+            empty.className = "column-empty";
+            empty.textContent = status === "todo" ? "Belum ada tugas di sini" : "Seret tugas ke sini";
+            cardList.append(empty);
+          }
+
+          columnTasks.forEach((task) => {
+            const overdue = task.status !== "done" && task.dueDate && task.dueDate < today;
+            const card = document.createElement("article");
+            card.className = "board-card";
+            card.dataset.id = task.id;
+            card.setAttribute("aria-label", `${task.title}, ${STATUS_LABELS[task.status]}`);
+            card.innerHTML = `
+              <div class="card-topline">
+                <span class="priority ${task.priority}">${priorityLabels[task.priority]}</span>
+                <span class="card-grip" aria-hidden="true">⠿</span>
+              </div>
+              <div class="card-title">${escapeHtml(task.title)}</div>
+              <p class="card-description">${escapeHtml(task.description)}</p>
+              <div class="card-footer">
+                <span class="card-due${overdue ? " overdue" : ""}">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M16 3v4M8 3v4M3.5 10h17"/></svg>
+                  ${overdue ? "Terlambat · " : ""}${formatDueDate(task.dueDate)}
+                </span>
+                <div class="card-actions">
+                  <select class="status-select" data-action="move" data-id="${escapeHtml(task.id)}" aria-label="Pindahkan ${escapeHtml(task.title)}">
+                    ${STATUSES.map((option) => `<option value="${option}"${task.status === option ? " selected" : ""}>${STATUS_LABELS[option]}</option>`).join("")}
+                  </select>
+                  <button class="delete-card" type="button" aria-label="Hapus tugas: ${escapeHtml(task.title)}" data-action="delete" data-id="${escapeHtml(task.id)}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
+                  </button>
+                </div>
+              </div>`;
+            cardList.append(card);
+          });
+
+          board.append(column);
+        });
+      }
+
+      function showAuthMessage(message, isError = false) {
+        authMessage.textContent = message;
+        authMessage.classList.toggle("error", isError);
+      }
+
+      function showAppError(message) {
+        $("#form-error").textContent = message;
+        console.error(message);
+      }
+
+      function mapRemoteTask(row) {
+        return normalizeTask({
+          id: row.id,
+          title: row.title,
+          description: row.description,
+          dueDate: row.due_date,
+          priority: row.priority,
+          status: row.status
+        });
+      }
+
+      async function refreshTasks() {
+        const { data, error } = await supabaseClient
+          .from("tasks")
+          .select("id,title,description,due_date,priority,status,created_at")
+          .order("created_at", { ascending: true });
+        if (error) throw error;
+        tasks = data.map(mapRemoteTask);
+        render();
+      }
+
+      async function migrateLocalTasksIfNeeded() {
+        const migrationKey = `ruang-supabase-migrated-${currentUser.id}`;
+        if (localStorage.getItem(migrationKey)) return;
+
+        const { count, error: countError } = await supabaseClient
+          .from("tasks")
+          .select("id", { count: "exact", head: true });
+        if (countError) throw countError;
+
+        if (count === 0) {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved !== null) {
+            const legacyTasks = JSON.parse(saved).map(normalizeTask);
+            if (legacyTasks.length > 0) {
+              const { error } = await supabaseClient.from("tasks").insert(legacyTasks.map((task) => ({
+                title: task.title,
+                description: task.description,
+                due_date: task.dueDate || null,
+                priority: task.priority,
+                status: task.status
+              })));
+              if (error) throw error;
+            }
+          }
+        }
+        localStorage.setItem(migrationKey, "true");
+      }
+
+      function updateAuthMode() {
+        const isSignUp = authMode === "signup";
+        $("#auth-heading").textContent = isSignUp ? "Buat akun Ruang" : "Masuk ke ruang kerja";
+        $(".auth-subtitle").textContent = isSignUp
+          ? "Buat akun untuk mulai bekerja bersama di papan tugas."
+          : "Masuk untuk melihat dan mengelola papan tugas bersama tim.";
+        $("#auth-submit").textContent = isSignUp ? "Buat akun" : "Masuk";
+        $("#auth-switch-prompt").textContent = isSignUp ? "Sudah punya akun?" : "Belum punya akun?";
+        $("#auth-switch").textContent = isSignUp ? "Masuk" : "Daftar";
+        $("#auth-password").autocomplete = isSignUp ? "new-password" : "current-password";
+        showAuthMessage("");
+      }
+
+      async function handleSession(session) {
+        const user = session?.user ?? null;
+        if (!user) {
+          currentUser = null;
+          if (realtimeChannel) {
+            await supabaseClient.removeChannel(realtimeChannel);
+            realtimeChannel = null;
+          }
+          app.hidden = true;
+          authScreen.hidden = false;
+          return;
+        }
+        if (currentUser?.id === user.id && !app.hidden) return;
+
+        currentUser = user;
+        $("#account-email").textContent = user.email || "Pengguna Ruang";
+        $("#account-email").title = user.email || "";
+        authScreen.hidden = true;
+        app.hidden = false;
+        $("#form-error").textContent = "";
+        try {
+          await migrateLocalTasksIfNeeded();
+          await refreshTasks();
+          if (realtimeChannel) await supabaseClient.removeChannel(realtimeChannel);
+          realtimeChannel = supabaseClient
+            .channel("ruang-shared-tasks")
+            .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, () => {
+              refreshTasks().catch((error) => showAppError(`Tidak dapat memperbarui papan bersama: ${error.message}`));
+            })
+            .subscribe((status) => {
+              if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+                showAppError("Koneksi pembaruan langsung gagal. Muat ulang halaman untuk mencoba lagi.");
+              }
+            });
+        } catch (error) {
+          showAppError(`Gagal memuat papan bersama: ${error.message}`);
+        }
+      }
+
+      async function initializeBackend() {
+        const url = window.RUANG_SUPABASE_URL;
+        const anonKey = window.RUANG_SUPABASE_ANON_KEY;
+        let parsedUrl;
+        try {
+          parsedUrl = new URL(url);
+        } catch {
+          parsedUrl = null;
+        }
+        if (!parsedUrl || !["https:", "http:"].includes(parsedUrl.protocol) || !anonKey || url.includes("YOUR_SUPABASE") || anonKey.includes("YOUR_SUPABASE")) {
+          $("#setup-note").hidden = false;
+          showAuthMessage("Project URL atau anon key Supabase belum valid. Periksa konfigurasi untuk mengaktifkan login.");
+          return;
+        }
+        if (!window.supabase?.createClient) {
+          showAuthMessage("SDK Supabase tidak berhasil dimuat. Periksa koneksi internet lalu muat ulang.", true);
+          return;
+        }
+
+        supabaseClient = window.supabase.createClient(url, anonKey);
+        supabaseClient.auth.onAuthStateChange((_event, session) => {
+          window.setTimeout(() => handleSession(session), 0);
+        });
+        const { data, error } = await supabaseClient.auth.getSession();
+        if (error) throw error;
+        await handleSession(data.session);
+      }
+
+      $("#open-form").addEventListener("click", () => {
+        form.classList.toggle("visible");
+        if (form.classList.contains("visible")) titleInput.focus();
+      });
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const title = titleInput.value.trim();
+        if (!title) {
+          $("#form-error").textContent = "Nama tugas tidak boleh kosong.";
+          titleInput.focus();
+          return;
+        }
+        const { error } = await supabaseClient.from("tasks").insert({
+          title,
+          description: $("#task-description").value.trim(),
+          due_date: $("#task-date").value || null,
+          priority: $("#task-priority").value,
+          status: "todo"
+        });
+        if (error) {
+          showAppError(`Tugas gagal disimpan: ${error.message}`);
+          return;
+        }
+        form.reset();
+        $("#form-error").textContent = "";
+        form.classList.remove("visible");
+        activeView = "all";
+        document.querySelectorAll(".nav-button").forEach((button) => button.classList.toggle("active", button.dataset.view === activeView));
+        try {
+          await refreshTasks();
+        } catch (refreshError) {
+          showAppError(`Tugas sudah disimpan, tetapi papan gagal diperbarui: ${refreshError.message}`);
+        }
+      });
+
+      board.addEventListener("change", (event) => {
+        const select = event.target.closest('select[data-action="move"]');
+        if (!select) return;
+        moveTask(select.dataset.id, select.value);
+      });
+
+      async function moveTask(taskId, status) {
+        if (!STATUSES.includes(status)) return;
+        const task = tasks.find((item) => item.id === taskId);
+        if (!task || task.status === status) return;
+        const previousStatus = task.status;
+        task.status = status;
+        render();
+        const { error } = await supabaseClient.from("tasks").update({ status }).eq("id", task.id);
+        if (error) {
+          task.status = previousStatus;
+          render();
+          showAppError(`Status tugas gagal diperbarui: ${error.message}`);
+          return;
+        }
+        refreshTasks().catch((refreshError) => showAppError(`Papan gagal diperbarui: ${refreshError.message}`));
+      }
+
+      board.addEventListener("click", async (event) => {
+        const button = event.target.closest('button[data-action="delete"]');
+        if (!button) return;
+        const task = tasks.find((item) => item.id === button.dataset.id);
+        if (!task) return;
+        const { error } = await supabaseClient.from("tasks").delete().eq("id", task.id);
+        if (error) {
+          showAppError(`Tugas gagal dihapus: ${error.message}`);
+          return;
+        }
+        tasks = tasks.filter((item) => item.id !== task.id);
+        render();
+      });
+
+      let pointerDrag = null;
+      board.addEventListener("pointerdown", (event) => {
+        if (event.pointerType !== "mouse" || event.target.closest("button, select")) return;
+        const card = event.target.closest(".board-card");
+        if (card) {
+          pointerDrag = {
+            id: card.dataset.id,
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            startY: event.clientY,
+            active: false
+          };
+        }
+      });
+      window.addEventListener("pointermove", (event) => {
+        if (!pointerDrag || event.pointerId !== pointerDrag.pointerId) return;
+        if (!pointerDrag.active && Math.hypot(event.clientX - pointerDrag.startX, event.clientY - pointerDrag.startY) < 6) return;
+        pointerDrag.active = true;
+        event.preventDefault();
+        const card = board.querySelector(`.board-card[data-id="${CSS.escape(pointerDrag.id)}"]`);
+        if (card) card.classList.add("dragging");
+        const target = document.elementFromPoint(event.clientX, event.clientY)?.closest(".kanban-column");
+        board.querySelectorAll(".kanban-column").forEach((column) => column.classList.toggle("drag-over", column === target));
+      });
+      async function finishPointerDrag(event) {
+        if (!pointerDrag || event.pointerId !== pointerDrag.pointerId) return;
+        const drag = pointerDrag;
+        pointerDrag = null;
+        const target = drag.active ? document.elementFromPoint(event.clientX, event.clientY)?.closest(".kanban-column") : null;
+        board.querySelectorAll(".kanban-column").forEach((column) => column.classList.remove("drag-over"));
+        board.querySelectorAll(".board-card.dragging").forEach((card) => card.classList.remove("dragging"));
+        const task = tasks.find((item) => item.id === drag.id);
+        if (!drag.active || !task || !target || !STATUSES.includes(target.dataset.status) || task.status === target.dataset.status) return;
+        await moveTask(task.id, target.dataset.status);
+      }
+      window.addEventListener("pointerup", finishPointerDrag);
+      window.addEventListener("pointercancel", finishPointerDrag);
+
+      document.querySelectorAll(".nav-button").forEach((button) => {
+        button.addEventListener("click", () => {
+          activeView = button.dataset.view;
+          document.querySelectorAll(".nav-button").forEach((item) => item.classList.toggle("active", item === button));
+          render();
+        });
+      });
+      $("#search").addEventListener("input", (event) => {
+        query = event.target.value.trim();
+        render();
+      });
+
+      $("#auth-switch").addEventListener("click", () => {
+        authMode = authMode === "signin" ? "signup" : "signin";
+        updateAuthMode();
+      });
+
+      authForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!supabaseClient) {
+          showAuthMessage("Supabase belum siap. Periksa konfigurasi dan koneksi internet.", true);
+          return;
+        }
+        const email = $("#auth-email").value.trim();
+        const password = $("#auth-password").value;
+        const submitButton = $("#auth-submit");
+        submitButton.disabled = true;
+        showAuthMessage(authMode === "signup" ? "Membuat akun..." : "Memeriksa akun...");
+        try {
+          if (authMode === "signup") {
+            const { data, error } = await supabaseClient.auth.signUp({ email, password });
+            if (error) throw error;
+            if (!data.session) {
+              showAuthMessage("Akun dibuat. Periksa email untuk verifikasi, lalu masuk.");
+            } else {
+              showAuthMessage("Akun berhasil dibuat.");
+            }
+          } else {
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) throw error;
+            showAuthMessage("Berhasil masuk.");
+          }
+        } catch (error) {
+          showAuthMessage(error.message || "Autentikasi gagal. Periksa kembali data dan coba lagi.", true);
+        } finally {
+          submitButton.disabled = false;
+        }
+      });
+
+      $("#google-sign-in").addEventListener("click", async () => {
+        if (!supabaseClient) {
+          showAuthMessage("Supabase belum siap. Periksa konfigurasi dan koneksi internet.", true);
+          return;
+        }
+        showAuthMessage("Membuka halaman masuk Google...");
+        const { error } = await supabaseClient.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo: window.location.origin + window.location.pathname }
+        });
+        if (error) showAuthMessage(error.message, true);
+      });
+
+      $("#sign-out").addEventListener("click", async () => {
+        const { error } = await supabaseClient.auth.signOut();
+        if (error) showAppError(`Gagal keluar: ${error.message}`);
+      });
+
+      initializeBackend().catch((error) => {
+        console.error("Supabase initialization failed.", error);
+        showAuthMessage(`Tidak dapat terhubung ke Supabase: ${error.message}`, true);
+      });
+
+      render();
+    </script>
+  </body>
+</html>
