@@ -14,10 +14,10 @@
         --ink: #202722;
         --muted: #788078;
         --line: #e7eae6;
-        --accent: #397254;
-        --accent-dark: #294f3a;
-        --accent-soft: #e8f0eb;
-        --sidebar: #202923;
+        --accent: #0B1F3A;
+        --accent-dark: #071529;
+        --accent-soft: #e8eef6;
+        --sidebar: #0B1F3A;
         --sidebar-muted: #aab2aa;
         --danger: #b24a43;
         --shadow: 0 18px 45px rgb(32 39 34 / 8%);
@@ -31,13 +31,13 @@
       .app { display: grid; grid-template-columns: 252px minmax(0, 1fr); min-height: 100vh; }
       .sidebar { display: flex; flex-direction: column; padding: 30px 18px 20px; background: var(--sidebar); color: #fff; }
       .brand { display: flex; align-items: center; gap: 11px; margin: 0 8px 45px; font-size: 19px; font-weight: 650; letter-spacing: -.6px; }
-      .brand-mark { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 10px; background: #dce9df; color: var(--accent-dark); }
+      .brand-mark { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 10px; background: var(--accent-soft); color: var(--accent-dark); }
       .brand-mark svg { width: 18px; height: 18px; }
       .side-label { margin: 0 10px 12px; color: #858f86; font-size: 10px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; }
       .nav { display: grid; gap: 5px; }
       .nav-button { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 43px; padding: 0 11px; border: 0; border-radius: 8px; background: transparent; color: var(--sidebar-muted); text-align: left; transition: background .18s, color .18s; }
       .nav-button:hover { background: rgb(255 255 255 / 7%); color: #fff; }
-      .nav-button.active { background: #35443a; color: #fff; }
+      .nav-button.active { background: #203854; color: #fff; }
       .nav-button svg { width: 17px; height: 17px; flex: none; opacity: .9; }
       .nav-button span { flex: 1; font-size: 13px; }
       .nav-count { color: #aeb8ae; font-size: 11px; }
@@ -50,8 +50,8 @@
       .search-wrap { position: relative; }
       .search-wrap svg { position: absolute; top: 50%; left: 12px; width: 16px; height: 16px; color: #8a928a; transform: translateY(-50%); pointer-events: none; }
       .search { width: min(220px, 34vw); height: 39px; padding: 0 12px 0 37px; border: 1px solid var(--line); border-radius: 8px; outline: none; background: var(--surface); color: var(--ink); font-size: 12px; }
-      .search:focus, .field:focus, .select:focus { border-color: #92ad9a; box-shadow: 0 0 0 3px rgb(57 114 84 / 10%); }
-      .avatar { display: grid; width: 35px; height: 35px; place-items: center; border: 1px solid #dfe5df; border-radius: 50%; background: #e7ece6; color: #48644f; font-size: 11px; font-weight: 650; }
+      .search:focus, .field:focus, .select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgb(11 31 58 / 15%); }
+      .avatar { display: grid; width: 35px; height: 35px; place-items: center; border: 1px solid #dfe5df; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: 11px; font-weight: 650; }
       .content { max-width: 900px; margin: 0 auto; }
       .heading-row { display: flex; justify-content: space-between; align-items: end; gap: 18px; margin-bottom: 29px; }
       .eyebrow { margin: 0 0 9px; color: var(--accent); font-size: 11px; font-weight: 650; letter-spacing: 1.2px; text-transform: uppercase; }
@@ -159,10 +159,10 @@
         --ink: #202922;
         --muted: #7d877e;
         --line: #e5e9e4;
-        --accent: #416c50;
-        --accent-dark: #31563e;
-        --accent-soft: #e9f0e9;
-        --sidebar: #202923;
+        --accent: #0B1F3A;
+        --accent-dark: #071529;
+        --accent-soft: #e8eef6;
+        --sidebar: #0B1F3A;
         --shadow: 0 16px 38px rgb(28 39 31 / 8%);
       }
       body { background: var(--background); }
@@ -170,7 +170,7 @@
       .brand { margin-bottom: 54px; font-size: 20px; }
       .nav { gap: 7px; }
       .nav-button { min-height: 45px; border-radius: 9px; }
-      .nav-button.active { background: #34453a; box-shadow: inset 2px 0 #a7c5a9; }
+      .nav-button.active { background: #203854; box-shadow: inset 2px 0 #a7bfdc; }
       .nav-button > span:nth-child(2) { flex: 1; min-width: 0; }
       .nav-button > .nav-count { flex: none; margin-left: auto; }
       main { padding: 32px clamp(22px, 4vw, 54px) 60px; }
@@ -200,7 +200,7 @@
       .drag-hint span { margin-right: 4px; font-size: 15px; vertical-align: -1px; }
       .board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 15px; }
       .kanban-column { min-width: 0; min-height: 270px; padding: 12px; border: 1px solid #e6e9e4; border-radius: 12px; background: #ecefeb; transition: background .18s, border-color .18s, box-shadow .18s; }
-      .kanban-column.drag-over { border-color: #8aa791; background: #e7eee8; box-shadow: inset 0 0 0 1px #b6c9b8; }
+      .kanban-column.drag-over { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px #a7bfdc; }
       .column-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 2px 3px 12px; }
       .column-heading { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 12px; font-weight: 650; }
       .column-dot { width: 8px; height: 8px; border-radius: 50%; background: #8d988e; }
@@ -229,7 +229,7 @@
       .card-due.overdue { color: var(--danger); }
       .card-actions { display: flex; align-items: center; gap: 5px; }
       .status-select { max-width: 112px; height: 27px; padding: 0 20px 0 7px; border: 1px solid #e8ebe7; border-radius: 6px; outline: none; background: #fafbf9; color: #657067; font-size: 9px; cursor: pointer; }
-      .status-select:focus { border-color: #92ad9a; }
+      .status-select:focus { border-color: var(--accent); }
       .delete-card { display: grid; width: 27px; height: 27px; padding: 0; place-items: center; border: 0; border-radius: 6px; background: transparent; color: #9aa29a; cursor: pointer; }
       .delete-card:hover { background: #f8eae8; color: var(--danger); }
       .delete-card svg { width: 14px; height: 14px; }
